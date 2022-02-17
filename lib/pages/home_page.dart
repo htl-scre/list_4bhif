@@ -13,19 +13,24 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final _todos = [
     Todo('Duschen'),
-    Todo('Integrieren'),
-    Todo('BWM lernen'),
-    Todo('Flutter'),
   ];
 
-  final _controller = TextEditingController();
+  final _controllers = {
+    'top': TextEditingController(),
+    'modalSheet': TextEditingController(),
+  };
 
-  void _addTodo() {
-    final input = _controller.text;
+  @override
+  void dispose() {
+    _controllers.values.forEach((controller) => controller.dispose());
+  }
+
+  void _addTodo(controller) {
+    final input = controller.text;
     final todo = Todo(input);
     setState(() {
       _todos.add(todo);
-      _controller.clear();
+      controller.clear();
     });
   }
 
@@ -36,32 +41,38 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  void _removeTodo(Todo todo) {
+    setState(() {
+      _todos.remove(todo);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Icon(Icons.favorite),
+        title: const Icon(Icons.favorite),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
-            AddTodo(_addTodo, _controller),
+            AddTodo(_addTodo, _controllers['top']!),
             Expanded(
-              child: TodoList(_todos, _toggleTodo),
+              child: TodoList(_todos, _toggleTodo, _removeTodo),
             ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
         onPressed: () {
           showModalBottomSheet(
             context: context,
             builder: (context) => Container(
               height: 400,
               alignment: Alignment.topCenter,
-              child: AddTodo(_addTodo, _controller),
+              child: AddTodo(_addTodo, _controllers['modalSheet']!),
             ),
           );
         },
